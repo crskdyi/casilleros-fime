@@ -3,6 +3,16 @@ export interface Locker {
   edificio: 1 | 5
   en_uso: boolean
 }
+
+export interface ReserveResponse {
+  status: 'success' | 'error'
+  message: string
+  qr?: {
+    data_url?: string
+    claim_url?: string
+  }
+}
+
 export const buildings = [
   {
     id: 5 as const,
@@ -21,6 +31,7 @@ export const buildings = [
     detail: 'Área de casilleros · Polideportivo',
   },
 ]
+
 export const API = 'https://elockers.onrender.com/api'
 
 export function parseLockers(data: unknown): Locker[] {
@@ -28,12 +39,15 @@ export function parseLockers(data: unknown): Locker[] {
     throw new Error(
       'La API devolvió un formato inesperado. Se esperaba una lista de casilleros.',
     )
+
   const ids = new Set<number>()
   return data.map((item: unknown) => {
     if (!item || typeof item !== 'object')
       throw new Error('La API devolvió un registro de casillero inválido.')
+
     const record = item as Record<string, unknown>
     const building = buildings.find((b) => b.id === record.edificio)
+
     if (
       !building ||
       typeof record.id !== 'number' ||
@@ -46,8 +60,10 @@ export function parseLockers(data: unknown): Locker[] {
         'La API devolvió un casillero con datos o rango de ID inválidos.',
       )
     }
+
     if (ids.has(record.id))
       throw new Error('La API devolvió IDs de casillero duplicados.')
+
     ids.add(record.id)
     return { id: record.id, edificio: building.id, en_uso: record.en_uso }
   })
@@ -65,10 +81,12 @@ export async function getLockers(): Promise<Locker[]> {
       'No pudimos conectar con el servicio de casilleros. Comprueba tu conexión y vuelve a intentar.',
     )
   }
+
   if (!response.ok)
     throw new Error(
       `No pudimos consultar la disponibilidad (HTTP ${response.status}). Vuelve a intentar.`,
     )
+
   let data: unknown
   try {
     data = await response.json()
@@ -77,10 +95,13 @@ export async function getLockers(): Promise<Locker[]> {
       'El servicio devolvió una respuesta JSON inválida. Vuelve a intentar.',
     )
   }
+
   return parseLockers(data)
 }
 
-export async function reserveLocker(id: number): Promise<void> {
+export async function reserveLocker(
+  id: number,
+): Promise<{ qrDataUrl: string; claimUrl: string }> {
   let response: Response
   try {
     response = await fetch(`${API}/reserve`, {
@@ -94,6 +115,7 @@ export async function reserveLocker(id: number): Promise<void> {
       'No pudimos confirmar la reserva. Tu selección se conserva; vuelve a intentar.',
     )
   }
+
   if (!response.ok) {
     if (response.status === 400 || response.status === 409)
       throw new Error(
@@ -102,5 +124,16 @@ export async function reserveLocker(id: number): Promise<void> {
     throw new Error(
       `No pudimos confirmar la reserva (HTTP ${response.status}). Tu selección se conserva.`,
     )
+  }
+
+  const data = (await response.json()) as ReserveResponse
+
+  if (!data.qr?.data_url) {
+    throw new Error('La API no devolvió el código QR de la reserva.')
+  }
+
+  return {
+    qrDataUrl: data.qr.data_url,
+    claimUrl: data.qr.claim_url ?? '',
   }
 }
