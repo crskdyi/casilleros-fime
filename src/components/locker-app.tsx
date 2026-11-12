@@ -28,6 +28,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 export function LockerApp() {
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
+  const [qrClaimUrl, setQrClaimUrl] = useState('')
+  const [qrModalOpen, setQrModalOpen] = useState(false)
   const [buildingId, setBuildingId] = useState<1 | 5 | null>(null)
   const [lockers, setLockers] = useState<Locker[] | null>(null)
   const [loading, setLoading] = useState(true)
