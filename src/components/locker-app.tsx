@@ -20,7 +20,13 @@ import {
   reserveLocker,
   type Locker,
 } from '@/lib/lockers'
-
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 export function LockerApp() {
   const [buildingId, setBuildingId] = useState<1 | 5 | null>(null)
   const [lockers, setLockers] = useState<Locker[] | null>(null)
