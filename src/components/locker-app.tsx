@@ -69,7 +69,7 @@ export function LockerApp() {
   const current = lockers?.filter((l) => l.edificio === buildingId) ?? []
   const available = current.filter((l) => !l.en_uso).length
   const byId = new Map(current.map((l) => [l.id, l]))
-  async function reserve() {
+    async function reserve() {
     if (
       !building ||
       selected === null ||
@@ -79,13 +79,22 @@ export function LockerApp() {
       byId.get(selected)!.en_uso
     )
       return
+
     setReserving(true)
     setReserveError('')
     setSuccess(null)
+    setQrDataUrl(null)
+    setQrClaimUrl('')
+
     try {
-      await reserveLocker(selected)
+      const result = await reserveLocker(selected)
+
+      setQrDataUrl(result.qrDataUrl)
+      setQrClaimUrl(result.claimUrl)
       setSuccess(selected)
       setSelected(null)
+      setQrModalOpen(true)
+
       await load()
     } catch (e) {
       setReserveError((e as Error).message)
