@@ -453,6 +453,50 @@ export function LockerApp() {
         <p>Más espacio para tu vida universitaria.</p>
         <span>Universidad Autónoma de Nuevo León</span>
       </footer>
+            <Dialog open={qrModalOpen} onOpenChange={setQrModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reserva confirmada</DialogTitle>
+            <DialogDescription>
+              Escanea este QR para completar la reserva del casillero{' '}
+              {success ?? 'seleccionado'}.
+            </DialogDescription>
+          </DialogHeader>
+
+          {qrDataUrl ? (
+            <div className="flex flex-col items-center gap-4">
+              <img
+                src={qrDataUrl}
+                alt="Código QR de la reserva"
+                className="h-64 w-64 rounded-xl border border-slate-200 bg-white p-3"
+              />
+
+              {qrClaimUrl && (
+                <a
+                  href={qrClaimUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-sm font-medium text-primary underline"
+                >
+                  Abrir enlace del QR
+                </a>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-slate-500">Generando QR...</p>
+          )}
+
+          <div className="mt-4 flex justify-end">
+            <button
+              type="button"
+              className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white"
+              onClick={() => setQrModalOpen(false)}
+            >
+              Cerrar
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
